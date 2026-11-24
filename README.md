@@ -17,72 +17,72 @@ The rule pipeline stops at missing price information first, then supplier blackl
 
 ## 2. Mathematics
 
-All exact arithmetic uses `fractions.Fraction`/`Decimal` for prices and discount factors, avoiding binary floating-point price arithmetic. The implementation defines a normalized unit price \(p\) in INR.
+All exact arithmetic uses `fractions.Fraction`/`Decimal` for prices and discount factors, avoiding binary floating-point price arithmetic. The implementation defines a normalized unit price $p$ in INR.
 
-**Category and amendment values.** `CATS` contains the GST rate, target, walk-away price, round count \(R\), concession exponent \(\beta\), and approval limit for each category. `AMDS` overrides `walk`, `target`, or `lim` on or before the thread date:
+**Category and amendment values.** `CATS` contains the GST rate, target, walk-away price, round count $R$, concession exponent $\beta$, and approval limit for each category. `AMDS` overrides `walk`, `target`, or `lim` on or before the thread date:
 
-\[
+$$
 C_{\text{effective}}(d)=C_{\text{base}},\quad\text{with amendments }(e,c,f,v)\text{ applied only when }e\le d.
-\]
+$$
 
-**Total, unit, and pack normalization.** A quote of \(V\) for all \(q\) units is divided by \(q\). Per dozen, pack-of-\(n\), or per-\(n\)-unit quotes are divided by \(n\). Printer-paper reams are multiplied by 10 after unit division because the code treats one ream as 10 box-equivalent units.
+**Total, unit, and pack normalization.** A quote of $V$ for all $q$ units is divided by $q$. Per dozen, pack-of-$n$, or per-$n$-unit quotes are divided by $n$. Printer-paper reams are multiplied by 10 after unit division because the code treats one ream as 10 box-equivalent units.
 
-\[
+$$
 p =
 \begin{cases}
 V/q & \text{total for }q\\
 V/n & \text{per dozen/pack of }n/\text{per }n\text{ units}\\
 10V/n & \text{printer reams when the line says per ream}
 \end{cases}
-\]
+$$
 
-**Discounts and free units.** A percentage discount applies as \(V(1-d/100)\). Free units reduce the paid share:
+**Discounts and free units.** A percentage discount applies as $V(1-d/100)$. Free units reduce the paid share:
 
-\[
+$$
 p=p_{\text{quoted}}\frac{u_{\text{paid}}}{u_{\text{paid}}+u_{\text{free}}}.
-\]
+$$
 
-The previous-quote discount is \(p_{\text{previous}}(1-d/100)\). The implementation also applies applicable volume discounts.
+The previous-quote discount is $p_{\text{previous}}(1-d/100)$. The implementation also applies applicable volume discounts.
 
-**Currency conversion.** USD, EUR, and GBP use fixed factors \(84.50\), \(91\), and \(106\) INR respectively. Supplier files may override conversion with explicit rates for USD/EUR/GBP/other supported currencies. INR requires no conversion.
+**Currency conversion.** USD, EUR, and GBP use fixed factors $84.50$, $91$, and $106$ INR respectively. Supplier files may override conversion with explicit rates for USD/EUR/GBP/other supported currencies. INR requires no conversion.
 
-\[
+$$
 p_{\text{INR}}=p_{\text{quote}}\times r_{\text{currency}},\qquad
 r_{\text{USD}}=84.5,\ r_{\text{EUR}}=91,\ r_{\text{GBP}}=106.
-\]
+$$
 
-**GST.** If the offer states that GST is included, the normalized value is divided by \(1+\mathrm{GST}/100\).
+**GST.** If the offer states that GST is included, the normalized value is divided by $1+\mathrm{GST}/100$.
 
-\[
+$$
 p=\frac{p_{\text{pre-GST}}}{1+\mathrm{GST}/100}.
-\]
+$$
 
 **Subscription period.** Cloud servers and subscription-like categories are normalized annually: monthly quotes are multiplied by 12. Cleaning/security month-based categories convert yearly quotes to a monthly-equivalent basis by dividing by 12.
 
-\[
+$$
 p_{\text{annual}}=12p_{\text{month}},\qquad
 p_{\text{month}}=\frac{p_{\text{annual}}}{12}.
-\]
+$$
 
-**Concession schedule.** For round \(r\), \(1\le r\le R\), target \(T\), walk-away \(W\), round count \(R\), and exponent \(\beta\):
+**Concession schedule.** For round $r$, $1\le r\le R$, target $T$, walk-away $W$, round count $R$, and exponent $\beta$:
 
-\[
+$$
 L(r)=T+(W-T)\left(\frac{r-1}{R-1}\right)^\beta.
-\]
+$$
 
-Probation suppliers use \(L(r)=T\) for every round.
+Probation suppliers use $L(r)=T$ for every round.
 
 **Counter rounding.** Counter-offers use half-up rounding to the nearest integer:
 
-\[
+$$
 \operatorname{rnd}(x)=\left\lfloor x+\frac12\right\rfloor.
-\]
+$$
 
 **Approval limit.** The total order exposure is compared with the category's effective limit:
 
-\[
+$$
 p\times q\le \mathrm{lim}.
-\]
+$$
 
 ## 3. Architecture
 
