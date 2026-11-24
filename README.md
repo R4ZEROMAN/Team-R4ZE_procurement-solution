@@ -75,7 +75,7 @@ Probation suppliers use $L(r)=T$ for every round.
 **Counter rounding.** Counter-offers use half-up rounding to the nearest integer:
 
 $$
-\operatorname{rnd}(x)=\left\lfloor x+\frac12\right\rfloor.
+rnd(x)=\left\lfloor x+\frac{1}{2}\right\rfloor.
 $$
 
 **Approval limit.** The total order exposure is compared with the category's effective limit:
